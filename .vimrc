@@ -89,8 +89,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'lifepillar/vim-gruvbox8'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
-  " Optional
-  Plug 'neoclide/coc.nvim', {'branch': 'release'} 
+  Plug 'neoclide/coc.nvim', {'branch': 'release'} " Optional
   Plug 'vim-airline/vim-airline'
 call plug#end()
 
@@ -117,9 +116,20 @@ set nowritebackup
 set cmdheight=2
 set updatetime=300
 set shortmess+=c
+
+if has("patch-8.1.1564")
+  " Recently vim can merge signcolumn and number column into one
+  set signcolumn=number
+else
+  set signcolumn=yes
+endif
+
 autocmd CursorHold * silent call CocActionAsync('highlight')
 nnoremap <leader>rn <Plug>(coc-rename)
 
+inoremap <silent><expr> <c-space> coc#refresh()
+inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 " -- Vim airline
 let g:airline#extensions#coc#enabled = 0
 let airline#extensions#coc#error_symbol = 'Error:'
