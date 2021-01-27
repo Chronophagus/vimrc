@@ -61,7 +61,7 @@ nnoremap <leader>o o<esc>
 nnoremap <leader>O O<esc>
 nnoremap <silent> <leader>[ :bprev!<cr>
 nnoremap <silent> <leader>] :bnext!<cr>
-nnoremap <leader> j J
+nnoremap <leader>j J
 nnoremap <leader><leader> <C-^>
 
 vnoremap <leader>y "+y
@@ -106,8 +106,10 @@ set background=light
 " -- fzf
 nnoremap <C-p> :Files<cr>
 nnoremap <leader>h :History<cr>
+nnoremap <leader>b :Buffers<cr>
 nnoremap <leader>f :Rg<cr>
-nnoremap <leader>w :bd<cr>
+nnoremap <leader>w :bn<bar>:sp<bar>:bp<bar>:bd<cr>
+nnoremap <leader>q :bd!<cr>
 
 " -- CoC
 set hidden
@@ -118,7 +120,6 @@ set updatetime=300
 set shortmess+=c
 
 if has("patch-8.1.1564")
-  " Recently vim can merge signcolumn and number column into one
   set signcolumn=number
 else
   set signcolumn=yes
@@ -130,6 +131,17 @@ nnoremap <leader>rn <Plug>(coc-rename)
 inoremap <silent><expr> <c-space> coc#refresh()
 inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+" Remap <C-f> and <C-b> for scroll float windows/popups.
+if has('nvim-0.4.0') || has('patch-8.2.0750')
+  nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+  nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+  inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
+  inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
+  vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+  vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+endif
+
 " -- Vim airline
 let g:airline#extensions#coc#enabled = 0
 let airline#extensions#coc#error_symbol = 'Error:'
