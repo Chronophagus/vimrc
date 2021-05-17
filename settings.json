@@ -1,0 +1,12 @@
+{
+    "rust-analyzer": {
+        "inlayHints": {
+            "enable": true,
+            "chainingHints": true
+        },
+        "checkOnSave": {
+            "enable": true,
+            "command": ["cargo", "clippy", "--workspace", "--message-format=json", "--all-targets"]
+        }
+    }
+}

@@ -87,10 +87,17 @@ nnoremap N N:set hlsearch<cr>
 call plug#begin('~/.vim/plugged')
   Plug 'preservim/nerdtree'
   Plug 'lifepillar/vim-gruvbox8'
+  Plug 'ayu-theme/ayu-vim'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
-  Plug 'neoclide/coc.nvim', {'branch': 'release'} " Optional
+  Plug 'autozimu/LanguageClient-neovim', {
+    \ 'branch': 'next',
+    \ 'do': 'bash install.sh',
+    \ }
   Plug 'vim-airline/vim-airline'
+  Plug 'rust-lang/rust.vim'
+  Plug 'tpope/vim-fugitive'
+  Plug 'ryanoasis/vim-devicons'
 call plug#end()
 
 " Plugin mappings and settings
@@ -98,11 +105,15 @@ call plug#end()
 " -- NERDTree
 nnoremap <leader><Tab> :NERDTreeToggle<cr>
 
-" -- gruvbox
+" -- colortheme
 
-colorscheme gruvbox8
-set background=light
-
+set background=dark
+set termguicolors
+let ayucolor="dark"
+colorscheme ayu
+"hi NERDTreeDir ctermfg=white guifg=#af87ff
+"hi NERDTreeDirSlash ctermfg=white guifg=#8700d7
+hi Error guibg=#870000
 " -- fzf
 nnoremap <C-p> :Files<cr>
 nnoremap <leader>h :History<cr>
@@ -110,41 +121,35 @@ nnoremap <leader>b :Buffers<cr>
 nnoremap <leader>f :Rg<cr>
 nnoremap <leader>w :bn<bar>:sp<bar>:bp<bar>:bd<cr>
 nnoremap <leader>q :bd!<cr>
-
-" -- CoC
-set hidden
-set nobackup
-set nowritebackup
-set cmdheight=2
-set updatetime=300
-set shortmess+=c
-
-if has("patch-8.1.1564")
-  set signcolumn=number
-else
-  set signcolumn=yes
-endif
-
-autocmd CursorHold * silent call CocActionAsync('highlight')
-nnoremap <leader>rn <Plug>(coc-rename)
-
-inoremap <silent><expr> <c-space> coc#refresh()
-inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
-" Remap <C-f> and <C-b> for scroll float windows/popups.
-if has('nvim-0.4.0') || has('patch-8.2.0750')
-  nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-  inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
-  inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
-  vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-  vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-endif
-
+ 
 " -- Vim airline
-let g:airline#extensions#coc#enabled = 0
+let g:airline_powerline_fonts = 1
 let airline#extensions#coc#error_symbol = 'Error:'
 let airline#extensions#coc#stl_format_err = '%E{[%e(#%fe)]}'
 let airline#extensions#coc#warning_symbol = 'Warning:'
 let airline#extensions#coc#stl_format_warn = '%W{[%w(#%fw)]}'
+
+" -- LanguageClient
+set hidden
+set completefunc=LanguageClient#complete
+
+let g:LanguageClient_serverCommands = {
+    \ 'rust': ['rust-analyzer'],
+    \ }
+
+let g:LanguageClient_settingsPath = "~/.vim/settings.json"
+
+nmap <silent> gd <Plug>(lcn-definition)
+nmap <silent> gy <Plug>(lcn-type-definition)
+nmap <silent> gr <Plug>(lcn-rename)
+nmap <silent> g? <Plug>(lcn-hover)
+nmap <silent> ge <Plug>(lcn-explain-error)
+nmap <silent> <tab> <Plug>(lcn-code-action)
+nmap <silent> & <Plug>(lcn-references)
+
+" -- Rust Vim
+
+let g:rustfmt_autosave = 1
+command! Cc split | te cargo clippy --all-targets
+command! Cb split | te cargo build
+command! Cbr split | te cargo build --release
