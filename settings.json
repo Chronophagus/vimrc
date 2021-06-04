@@ -4,6 +4,15 @@
             "enable": true,
             "chainingHints": true
         },
+        "cargo": {
+            "loadOutDirsFromCheck": true
+        },
+        "procMacro": {
+            "enable": true
+        },
+        "diagnostics": {
+            "disabled": ["unresolved-proc-macro", "unresolved-macro-call"]
+        },
         "checkOnSave": {
             "enable": true,
             "command": ["cargo", "clippy", "--workspace", "--message-format=json", "--all-targets"]

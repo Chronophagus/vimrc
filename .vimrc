@@ -39,10 +39,6 @@ set noswapfile
 nnoremap j gj
 nnoremap k gk
 
-nnoremap m ,
-nnoremap , ;
-nnoremap ; <nop>
-
 nnoremap <C-l> <C-w>l
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
@@ -86,7 +82,6 @@ nnoremap N N:set hlsearch<cr>
 "
 call plug#begin('~/.vim/plugged')
   Plug 'preservim/nerdtree'
-  Plug 'lifepillar/vim-gruvbox8'
   Plug 'ayu-theme/ayu-vim'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
@@ -111,8 +106,6 @@ set background=dark
 set termguicolors
 let ayucolor="dark"
 colorscheme ayu
-"hi NERDTreeDir ctermfg=white guifg=#af87ff
-"hi NERDTreeDirSlash ctermfg=white guifg=#8700d7
 hi Error guibg=#870000
 " -- fzf
 nnoremap <C-p> :Files<cr>
@@ -144,7 +137,7 @@ nmap <silent> gy <Plug>(lcn-type-definition)
 nmap <silent> gr <Plug>(lcn-rename)
 nmap <silent> g? <Plug>(lcn-hover)
 nmap <silent> ge <Plug>(lcn-explain-error)
-nmap <silent> <tab> <Plug>(lcn-code-action)
+nmap <silent> g<tab> <Plug>(lcn-code-action)
 nmap <silent> & <Plug>(lcn-references)
 
 " -- Rust Vim
