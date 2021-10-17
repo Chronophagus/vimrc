@@ -34,6 +34,8 @@ set completeopt=longest,menu
 
 set noswapfile
 
+set scrollback=100000
+
 " Mappings
 
 nnoremap j gj
@@ -70,6 +72,9 @@ vnoremap <leader>P "+P
 vnoremap <leader>p "+p
 vnoremap <leader>P "+P
 
+tnoremap <Esc> <C-\><C-n>
+tnoremap ;j <C-\><C-n>
+
 inoremap ;j <esc>
 inoremap {<cr> {<cr>}<c-o>O
 
@@ -85,14 +90,18 @@ call plug#begin('~/.vim/plugged')
   Plug 'ayu-theme/ayu-vim'
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
-  Plug 'autozimu/LanguageClient-neovim', {
-    \ 'branch': 'next',
-    \ 'do': 'bash install.sh',
-    \ }
+  Plug 'neovim/nvim-lspconfig'
+  Plug 'simrat39/rust-tools.nvim'
+  Plug 'nvim-lua/popup.nvim'
+  Plug 'nvim-lua/plenary.nvim'
+  Plug 'nvim-telescope/telescope.nvim'
   Plug 'vim-airline/vim-airline'
   Plug 'rust-lang/rust.vim'
   Plug 'tpope/vim-fugitive'
   Plug 'ryanoasis/vim-devicons'
+  Plug 'godlygeek/tabular'
+  "Plug 'SirVer/ultisnips'
+  "Plug 'honza/vim-snippets'
 call plug#end()
 
 " Plugin mappings and settings
@@ -107,6 +116,7 @@ set termguicolors
 let ayucolor="dark"
 colorscheme ayu
 hi Error guibg=#870000
+
 " -- fzf
 nnoremap <C-p> :Files<cr>
 nnoremap <leader>h :History<cr>
@@ -117,32 +127,63 @@ nnoremap <leader>q :bd!<cr>
  
 " -- Vim airline
 let g:airline_powerline_fonts = 1
-let airline#extensions#coc#error_symbol = 'Error:'
-let airline#extensions#coc#stl_format_err = '%E{[%e(#%fe)]}'
-let airline#extensions#coc#warning_symbol = 'Warning:'
-let airline#extensions#coc#stl_format_warn = '%W{[%w(#%fw)]}'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail'
 
 " -- LanguageClient
-set hidden
-set completefunc=LanguageClient#complete
+lua << EOF
+require'lspconfig'.rust_analyzer.setup{}
+require('rust-tools').setup({})
 
-let g:LanguageClient_serverCommands = {
-    \ 'rust': ['rust-analyzer'],
-    \ }
+local nvim_lsp = require('lspconfig')
 
-let g:LanguageClient_settingsPath = "~/.vim/settings.json"
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
 
-nmap <silent> gd <Plug>(lcn-definition)
-nmap <silent> gy <Plug>(lcn-type-definition)
-nmap <silent> gr <Plug>(lcn-rename)
-nmap <silent> g? <Plug>(lcn-hover)
-nmap <silent> ge <Plug>(lcn-explain-error)
-nmap <silent> g<tab> <Plug>(lcn-code-action)
-nmap <silent> & <Plug>(lcn-references)
+  --Enable completion triggered by <c-x><c-o>
+  buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  local opts = { noremap=true, silent=true }
+
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+  buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  buf_set_keymap('n', 'gK', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  buf_set_keymap('n', 'g?', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+  buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
+  buf_set_keymap('n', 'g<Tab>', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  buf_set_keymap('n', 'g&', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  buf_set_keymap('n', 'ge', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
+  buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
+  buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
+  buf_set_keymap('n', 'gf', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
+
+end
+
+-- Use a loop to conveniently call 'setup' on multiple servers and
+-- map buffer local keybindings when the language server attaches
+local servers = { 'rust_analyzer' }
+for _, lsp in ipairs(servers) do
+  nvim_lsp[lsp].setup {
+    on_attach = on_attach,
+    flags = {
+      debounce_text_changes = 150,
+    }
+  }
+end
+EOF
 
 " -- Rust Vim
 
 let g:rustfmt_autosave = 1
-command! Cc split | te cargo clippy --all-targets
-command! Cb split | te cargo build
-command! Cbr split | te cargo build --release
+command! Cc lua require('rust-tools.runnables').runnables()
+command! Cb split | te cargo build --release
+command! Rcc split | te on-hetzner cargo clippy --tests
+command! Rcb split | te on-hetzner cargo build
+command! Rcbr split | te on-hetzner cargo build --release
